@@ -5,9 +5,9 @@ CXXFLAGS += -Wall -Wextra -Wcast-align -Wcast-qual -Wconversion -Wfloat-equal \
 	    -Wno-sign-conversion -Wno-unused-function \
             -Wno-missing-declarations \
             -fopenmp -std=c++14 -mcx16 -O3 -DNDEBUG 
-LDLIBS   += -ltcmalloc_minimal -lnuma
+LDLIBS   += -ltcmalloc_minimal -lnuma -lsqlite3
 TARGETS   = reorder
-
+HEADER    = ../../graph_preprocess/ # needed to write rabbit preprocessing times to db
 $(TARGETS): %: %.cc
 	$(LINK.cc) -MD -o $@ $< $(LDLIBS)
 	@cp $*.d .$*.P; \
