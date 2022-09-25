@@ -187,25 +187,40 @@ void detect_community(adjacency_list adj) {
   std::cerr << "Modularity: " << q << std::endl;
 }
 
-void reorder(adjacency_list adj, std::string output_path, uint64_t m, std::string graph_name, std::string sqlite_db_path) {
+void reorder(adjacency_list adj, std::string output_path, uint64_t m, std::string graph_name, std::string sqlite_db_path, std::string comms_path) {
   std::cerr << "Generating a permutation...\n";
   const double tstart = rabbit_order::now_sec();
   auto start = std::chrono::high_resolution_clock::now();
   //--------------------------------------------
-  const auto g = rabbit_order::aggregate(std::move(adj));
+  auto g = rabbit_order::aggregate(std::move(adj));
   const auto p = rabbit_order::compute_perm(g);
   //--------------------------------------------
   auto end = std::chrono::high_resolution_clock::now();
   auto rabbit_time = duration_cast<time_unit>(end - start);
+
+  // additionally, compute the communities in the graph to decide which regions of the adj.mat to fill with furhilbert
+
+  const auto c = std::make_unique<vint[]>(g.n());
+  #pragma omp parallel for
+  for (vint v = 0; v < g.n(); ++v)
+    c[v] = rabbit_order::trace_com(v, &g);
+
   single_val_set_int(sqlite_db_path, "rabbit", "preproc", graph_name, int(rabbit_time.count()));
   std::cerr << "Runtime for permutation generation [sec]: "
             << rabbit_order::now_sec() - tstart << std::endl;
   std::ofstream rbt_outfile(output_path);
+  std::ofstream comms_outfile(comms_path);
+
   rbt_outfile << g.n() << "\n";
   rbt_outfile << m << "\n";
   for (vint i = 0; i < g.n(); ++i) {
     rbt_outfile << i << " " << p[i] << "\n";
+    comms_outfile << c[i] << "\n";
   }
+
+  rbt_outfile.close();
+  comms_outfile.close();
+
   // Print the result
   // std::copy(&p[0], &p[g.n()], std::ostream_iterator<vint>(std::cout, "\n"));
 }
@@ -214,7 +229,7 @@ int main(int argc, char* argv[]) {
   using boost::adaptors::transformed;
 
   // Parse command-line arguments
-  if (argc != 5 && (argc != 3 || std::string("-c") != argv[1])) {
+  if (argc != 6 && (argc != 3 || std::string("-c") != argv[1])) {
     std::cerr << "Usage: reorder [-c] GRAPH_FILE\n"
               << "  -c    Print community IDs instead of a new ordering\n";
     exit(EXIT_FAILURE);
@@ -225,6 +240,7 @@ int main(int argc, char* argv[]) {
   std::string output_path = argv[2];
   std::string graph_name = argv[3];
   std::string sqlite_db_path = argv[4];
+  std::string comms_path = argv[5];
 
   std::cerr << "Number of threads: " << omp_get_max_threads() << std::endl;
 
@@ -239,7 +255,7 @@ int main(int argc, char* argv[]) {
   if (commode)
     detect_community(std::move(adj));
   else
-    reorder(std::move(adj), output_path, m, graph_name, sqlite_db_path);
+    reorder(std::move(adj), output_path, m, graph_name, sqlite_db_path, comms_path);
 
   return EXIT_SUCCESS;
 }
