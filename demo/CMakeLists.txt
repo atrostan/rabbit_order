@@ -16,4 +16,4 @@ add_executable(reorder  ../../graph_preprocess/sql.h ../../graph_preprocess/sql.
 target_include_directories(reorder PUBLIC ${GraphPreprocessDir})
 
 link_directories(${GraphPreprocessDir})
-target_link_libraries(reorder LINK_PUBLIC sqlite3 ${Boost_LIBRARIES}  tcmalloc_minimal numa )
+target_link_libraries(reorder LINK_PUBLIC sqlite3 ${Boost_LIBRARIES} tcmalloc_minimal numa )
