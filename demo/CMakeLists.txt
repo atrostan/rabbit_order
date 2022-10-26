@@ -7,10 +7,9 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wcast-align -Wcast-qual -Wconversion -Wfloat
 
 add_compile_options(-l sqlite3)
 
-find_package(Boost 1.58.0 COMPONENTS system filesystem graph serialization REQUIRED)
+find_package(Boost 1.58.0 EXACT COMPONENTS system filesystem graph serialization REQUIRED)
 
-set(GraphPreprocessDir "/home/atrostan/Workspace/repos/congenial-enigma/graph_preprocess")
-
+set(GraphPreprocessDir "../../graph_preprocess")
 
 add_executable(reorder  ../../graph_preprocess/sql.h ../../graph_preprocess/sql.cpp reorder.cc ../rabbit_order.hpp edge_list.hpp )
 target_include_directories(reorder PUBLIC ${GraphPreprocessDir})
