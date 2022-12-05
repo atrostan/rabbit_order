@@ -205,7 +205,7 @@ void reorder(adjacency_list adj, std::string output_path, uint64_t m, std::strin
   for (vint v = 0; v < g.n(); ++v)
     c[v] = rabbit_order::trace_com(v, &g);
 
-  single_val_set_int(sqlite_db_path, "rabbit", "preproc", graph_name, int(rabbit_time.count()));
+  single_val_set<int>(sqlite_db_path, "rabbit", "preproc", graph_name, int(rabbit_time.count()));
   std::cerr << "Runtime for permutation generation [sec]: "
             << rabbit_order::now_sec() - tstart << std::endl;
   std::ofstream rbt_outfile(output_path);
